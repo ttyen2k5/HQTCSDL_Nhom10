@@ -20,8 +20,8 @@ BEGIN
 	END
 
   -- Kiểm tra loại bảo hiểm y tế tồn tại không
-	IF NOT EXISTS (SELECT * FROM BaoHiemYTe WHERE BaoHiemID = @BaoHiemID) 
-	BEGIN 
+	IF dbo.KiemTraBHYT (@BaoHiemID) = 0
+  BEGIN 
 	  PRINT N'Loại bảo hiểm không tồn tại!'; 
 	  RETURN; 
 	END

@@ -19,6 +19,24 @@ GO
 SELECT dbo.KiemTraPhongConTrong(2) AS KiemTraPhongConTrong
 -- ok
 
+-- Hàm kiểm tra BaoHiemID có tồn tại không
+GO 
+CREATE FUNCTION KiemTraBHYT(@BaoHiemID NVARCHAR(50))
+RETURNS BIT
+AS
+BEGIN
+    DECLARE @result BIT;
+    IF EXISTS (SELECT 1 FROM BaoHiemYTe WHERE BaoHiemID = @BaoHiemID)
+        SET @result = 1;
+    ELSE
+        SET @result = 0;
+
+    RETURN @result;
+END;
+GO
+-- check
+SELECT dbo.KiemTraBHYT(1) AS KiemTraBHYT
+-- ok
 
 
 -- Kiểm tra bệnh nhân đã thanh toán chưa
