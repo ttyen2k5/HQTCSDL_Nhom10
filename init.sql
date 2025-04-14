@@ -5,34 +5,6 @@ USE QUANLYBENHNHAN
 USE master
 DROP DATABASE QUANLYBENHNHAN
 
-
--- Bảng bệnh nhân
-CREATE TABLE BenhNhan
-(
-  BenhNhanID INT PRIMARY KEY IDENTITY(1,1),
-  HoTen NVARCHAR(100) NOT NULL,
-  NgaySinh DATE,
-  GioiTinh NVARCHAR(3),
-  DiaChi NVARCHAR(255),
-  SDT NVARCHAR(10),
-  NgayNhapVien DATE,
-  NgayXuatVien DATE default NULL,
-  PhongID INT,
-  BaoHiemID INT DEFAULT 1,
-  FOREIGN KEY (PhongID) REFERENCES Phong(PhongID),
-  FOREIGN KEY (BaoHiemID) REFERENCES BaoHiemYTe(BaoHiemID)
-);
-
--- Bảng bác sĩ
-CREATE TABLE BacSi
-(
-  BacSiID INT PRIMARY KEY IDENTITY(1,1),
-  HoTen NVARCHAR(100) NOT NULL,
-  SDT NVARCHAR(15),
-  Email NVARCHAR(100),
-  KhoaID INT,
-  FOREIGN KEY (KhoaID) REFERENCES Khoa(KhoaID)
-);
 -- Bảng khoa
 CREATE TABLE Khoa
 (
@@ -77,14 +49,32 @@ CREATE TABLE BaoHiemYTe
   MienGiam DECIMAL(10, 2)
 );
 
--- Bảng biên lai
-CREATE TABLE BienLai
+-- Bảng bệnh nhân
+CREATE TABLE BenhNhan
 (
-  BienLaiID INT PRIMARY KEY IDENTITY(1,1),
-  HoSoID INT,
-  TongTien DECIMAL(10, 2) DEFAULT 0,
-  ThanhToan BIT DEFAULT 0,
-  FOREIGN KEY (HoSoID) REFERENCES HoSoBenhAn(HoSoID)
+  BenhNhanID INT PRIMARY KEY IDENTITY(1,1),
+  HoTen NVARCHAR(100) NOT NULL,
+  NgaySinh DATE,
+  GioiTinh NVARCHAR(3),
+  DiaChi NVARCHAR(255),
+  SDT NVARCHAR(10),
+  NgayNhapVien DATE,
+  NgayXuatVien DATE default NULL,
+  PhongID INT,
+  BaoHiemID INT DEFAULT 1,
+  FOREIGN KEY (PhongID) REFERENCES Phong(PhongID),
+  FOREIGN KEY (BaoHiemID) REFERENCES BaoHiemYTe(BaoHiemID)
+);
+
+-- Bảng bác sĩ
+CREATE TABLE BacSi
+(
+  BacSiID INT PRIMARY KEY IDENTITY(1,1),
+  HoTen NVARCHAR(100) NOT NULL,
+  SDT NVARCHAR(15),
+  Email NVARCHAR(100),
+  KhoaID INT,
+  FOREIGN KEY (KhoaID) REFERENCES Khoa(KhoaID)
 );
 
 -- Bảng hồ sơ bệnh án
@@ -99,6 +89,15 @@ CREATE TABLE HoSoBenhAn
   FOREIGN KEY (BacSiID) REFERENCES BacSi(BacSiID)
 );
 
+-- Bảng biên lai
+CREATE TABLE BienLai
+(
+  BienLaiID INT PRIMARY KEY IDENTITY(1,1),
+  HoSoID INT,
+  TongTien DECIMAL(10, 2) DEFAULT 0,
+  ThanhToan BIT DEFAULT 0,
+  FOREIGN KEY (HoSoID) REFERENCES HoSoBenhAn(HoSoID)
+);
 
 -- Dich Vu 
 CREATE TABLE DichVu
