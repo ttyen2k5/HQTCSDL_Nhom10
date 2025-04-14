@@ -156,7 +156,7 @@ EXECUTE sp_TaoHoSoBenhAn 23, 1, N'Đau đầu vì không có người yêu';
 
 
 
--- Procedure thanh toán cho bện nhân 
+-- Procedure thanh toán cho bệnh nhân 
 GO
 CREATE PROCEDURE sp_ThanhToan
   @BenhNhanID INT
@@ -241,7 +241,7 @@ EXECUTE sp_XuatVien 2
 
 -- Procedure chuyển phòng
 GO
-ALTER PROCEDURE sp_ChuyenPhong
+CREATE OR ALTER PROCEDURE sp_ChuyenPhong
   @BenhNhanID INT,
   @PhongMoiID INT
 AS
@@ -308,7 +308,7 @@ EXECUTE sp_ChuyenPhong 1, 2
 
 
 
-
+-- Procedure tạo dịch vụ khám
 GO
 CREATE PROCEDURE sp_TaoDichVu 
   @LoaiDichVuID INT,

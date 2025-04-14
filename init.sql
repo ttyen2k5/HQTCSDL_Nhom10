@@ -5,6 +5,34 @@ USE QUANLYBENHNHAN
 USE master
 DROP DATABASE QUANLYBENHNHAN
 
+
+-- Bảng bệnh nhân
+CREATE TABLE BenhNhan
+(
+  BenhNhanID INT PRIMARY KEY IDENTITY(1,1),
+  HoTen NVARCHAR(100) NOT NULL,
+  NgaySinh DATE,
+  GioiTinh NVARCHAR(3),
+  DiaChi NVARCHAR(255),
+  SDT NVARCHAR(10),
+  NgayNhapVien DATE,
+  NgayXuatVien DATE default NULL,
+  PhongID INT,
+  BaoHiemID INT DEFAULT 1,
+  FOREIGN KEY (PhongID) REFERENCES Phong(PhongID),
+  FOREIGN KEY (BaoHiemID) REFERENCES BaoHiemYTe(BaoHiemID)
+);
+
+-- Bảng bác sĩ
+CREATE TABLE BacSi
+(
+  BacSiID INT PRIMARY KEY IDENTITY(1,1),
+  HoTen NVARCHAR(100) NOT NULL,
+  SDT NVARCHAR(15),
+  Email NVARCHAR(100),
+  KhoaID INT,
+  FOREIGN KEY (KhoaID) REFERENCES Khoa(KhoaID)
+);
 -- Bảng khoa
 CREATE TABLE Khoa
 (
@@ -49,32 +77,14 @@ CREATE TABLE BaoHiemYTe
   MienGiam DECIMAL(10, 2)
 );
 
--- Bảng bệnh nhân
-CREATE TABLE BenhNhan
+-- Bảng biên lai
+CREATE TABLE BienLai
 (
-  BenhNhanID INT PRIMARY KEY IDENTITY(1,1),
-  HoTen NVARCHAR(100) NOT NULL,
-  NgaySinh DATE,
-  GioiTinh NVARCHAR(3),
-  DiaChi NVARCHAR(255),
-  SDT NVARCHAR(10),
-  NgayNhapVien DATE,
-  NgayXuatVien DATE default NULL,
-  PhongID INT,
-  BaoHiemID INT DEFAULT 1,
-  FOREIGN KEY (PhongID) REFERENCES Phong(PhongID),
-  FOREIGN KEY (BaoHiemID) REFERENCES BaoHiemYTe(BaoHiemID)
-);
-
--- Bảng bác sĩ
-CREATE TABLE BacSi
-(
-  BacSiID INT PRIMARY KEY IDENTITY(1,1),
-  HoTen NVARCHAR(100) NOT NULL,
-  SDT NVARCHAR(15),
-  Email NVARCHAR(100),
-  KhoaID INT,
-  FOREIGN KEY (KhoaID) REFERENCES Khoa(KhoaID)
+  BienLaiID INT PRIMARY KEY IDENTITY(1,1),
+  HoSoID INT,
+  TongTien DECIMAL(10, 2) DEFAULT 0,
+  ThanhToan BIT DEFAULT 0,
+  FOREIGN KEY (HoSoID) REFERENCES HoSoBenhAn(HoSoID)
 );
 
 -- Bảng hồ sơ bệnh án
@@ -89,15 +99,6 @@ CREATE TABLE HoSoBenhAn
   FOREIGN KEY (BacSiID) REFERENCES BacSi(BacSiID)
 );
 
--- Bảng biên lai
-CREATE TABLE BienLai
-(
-  BienLaiID INT PRIMARY KEY IDENTITY(1,1),
-  HoSoID INT,
-  TongTien DECIMAL(10, 2) DEFAULT 0,
-  ThanhToan BIT DEFAULT 0,
-  FOREIGN KEY (HoSoID) REFERENCES HoSoBenhAn(HoSoID)
-);
 
 -- Dich Vu 
 CREATE TABLE DichVu
@@ -355,25 +356,44 @@ SELECT * FROM BienLai;
 SELECT * FROM DichVu;
 SELECT * FROM DonThuoc;
 
--- Updata so luong giuong trong trong phong
+-- Update so luong giuong trong trong phong
 UPDATE Phong
 SET GiuongTrong = TongSoGiuong - COALESCE((SELECT COUNT(*) FROM BenhNhan WHERE PhongID = Phong.PhongID), 0);
 
--- Updata tong tien trong bien lai
+-- Update tong tien trong bien lai
 UPDATE BienLai
-SET TongTien = (COALESCE(DichVuTien, 0) + COALESCE(DonThuocTien, 0)) * (1 - ISNULL(bh.MienGiam, 0))
-FROM BienLai
-LEFT JOIN (
-    SELECT BienLaiID, SUM(SoLan * GiaDichVu) AS DichVuTien
-    FROM DichVu
-    JOIN LoaiDichVuKham ON DichVu.LoaiDichVuID = LoaiDichVuKham.LoaiDichVuID
-    GROUP BY BienLaiID
-) AS DichVuTong ON BienLai.BienLaiID = DichVuTong.BienLaiID
-LEFT JOIN (
-    SELECT BienLaiID, SUM(SoLuong * GiaThuoc) AS DonThuocTien
-    FROM DonThuoc
-    JOIN Thuoc ON DonThuoc.ThuocID = Thuoc.ThuocID
-    GROUP BY BienLaiID
-) AS DonThuocTong ON BienLai.BienLaiID = DonThuocTong.BienLaiID
-JOIN BenhNhan bn ON BienLai.BienLaiID = bn.PhongID
-LEFT JOIN BaoHiemYTe bh ON bn.BaoHiemID = bh.BaoHiemID;
+SET TongTien = 
+  (COALESCE(DichVuTien, 0) + COALESCE(DonThuocTien, 0)) * (1 - ISNULL(BaoHiemYTe.MienGiam, 0))
+FROM 
+  BienLai, 
+  (
+    SELECT 
+      DichVu.BienLaiID, 
+      SUM(DichVu.SoLan * LoaiDichVuKham.GiaDichVu) AS DichVuTien
+    FROM 
+      DichVu, 
+      LoaiDichVuKham
+    WHERE 
+      DichVu.LoaiDichVuID = LoaiDichVuKham.LoaiDichVuID
+    GROUP BY 
+      DichVu.BienLaiID
+  ) AS DichVuTong,
+  (
+    SELECT 
+      DonThuoc.BienLaiID, 
+      SUM(DonThuoc.SoLuong * Thuoc.GiaThuoc) AS DonThuocTien
+    FROM 
+      DonThuoc, 
+      Thuoc
+    WHERE 
+      DonThuoc.ThuocID = Thuoc.ThuocID
+    GROUP BY 
+      DonThuoc.BienLaiID
+  ) AS DonThuocTong,
+  BenhNhan, 
+  BaoHiemYTe
+WHERE 
+  BienLai.BienLaiID = DichVuTong.BienLaiID and
+  BienLai.BienLaiID = DonThuocTong.BienLaiID and
+  BienLai.BienLaiID = BenhNhan.PhongID and
+  BenhNhan.BaoHiemID = BaoHiemYTe.BaoHiemID;
